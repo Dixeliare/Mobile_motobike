@@ -47,6 +47,7 @@ import CreateSharedRideScreen from './src/screens/driver/CreateSharedRideScreen.
 import VehicleManagementScreen from './src/screens/driver/VehicleManagementScreen.jsx';
 import DriverRideTrackingScreen from './src/screens/driver/DriverRideTrackingScreen.jsx';
 import DriverRideDetailsScreen from './src/screens/driver/DriverRideDetailsScreen.jsx';
+import DriverRideHistoryScreen from './src/screens/driver/DriverRideHistoryScreen.jsx';
 import DriverCompletionScreen from './src/screens/driver/DriverCompletionScreen.jsx';
 import DriverDashboardScreen from './src/screens/driver/DriverDashboardScreen.jsx';
 import DriverEarningsScreen from './src/screens/driver/DriverEarningsScreen.jsx';
@@ -69,6 +70,7 @@ function DriverMainStack() {
       <DriverStack.Screen name="DriverTabs" component={DriverTabNavigator} />
       <DriverStack.Screen name="DriverRideTracking" component={DriverRideTrackingScreen} />
       <DriverStack.Screen name="DriverRideDetails" component={DriverRideDetailsScreen} />
+      <DriverStack.Screen name="DriverRideHistory" component={DriverRideHistoryScreen} />
       <DriverStack.Screen name="DriverCompletion" component={DriverCompletionScreen} />
       <DriverStack.Screen name="CreateSharedRide" component={CreateSharedRideScreen} />
       <DriverStack.Screen name="VehicleManagement" component={VehicleManagementScreen} />
