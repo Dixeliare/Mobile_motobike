@@ -77,7 +77,7 @@ function DriverMainStack() {
       <DriverStack.Screen name="DriverEarnings" component={DriverEarningsScreen} />
       <DriverStack.Screen name="DriverRatings" component={DriverRatingsScreen} />
       <DriverStack.Screen name="DriverProfile" component={DriverProfileScreen} />
-      <DriverStack.Screen name="DriverRideHistory" component={DriverRideHistoryScreen} />
+
       <DriverStack.Screen name="SOSAlert" component={SOSAlertScreen} />
       <DriverStack.Screen name="DriverTest" component={DriverTestScreen} />
     </DriverStack.Navigator>
