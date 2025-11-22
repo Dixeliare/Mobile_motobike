@@ -46,15 +46,15 @@ const DriverProfileScreen = ({ navigation }) => {
   const loadDriverData = async () => {
     try {
       setLoading(true);
-      
+
       // Load user profile first
       const userProfile = await authService.getCurrentUserProfile();
       setUser(userProfile);
-      
+
       // Try to load vehicles, but don't fail if it errors (403, etc.)
       try {
         const vehiclesData = await vehicleService.getDriverVehicles({ page: 0, size: 10 });
-        
+
         // Extract vehicles from response (could be array or paginated response)
         if (vehiclesData) {
           if (Array.isArray(vehiclesData)) {
@@ -100,8 +100,8 @@ const DriverProfileScreen = ({ navigation }) => {
       'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản tài xế?',
       [
         { text: 'Hủy', style: 'cancel' },
-        { 
-          text: 'Đăng xuất', 
+        {
+          text: 'Đăng xuất',
           onPress: async () => {
             try {
               await authService.logout();
@@ -201,7 +201,7 @@ const DriverProfileScreen = ({ navigation }) => {
     <AppBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar barStyle="light-content" />
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -213,215 +213,215 @@ const DriverProfileScreen = ({ navigation }) => {
             />
           </View>
 
-        <View style={styles.content}>
-          {/* Profile Card */}
-          <Animatable.View animation="fadeInUp">
-            <CleanCard style={styles.profileCard} contentStyle={styles.profileCardContent}>
+          <View style={styles.content}>
+            {/* Profile Card */}
+            <Animatable.View animation="fadeInUp">
+              <CleanCard style={styles.profileCard} contentStyle={styles.profileCardContent}>
                 <View style={styles.profileHeader}>
-              <Image 
-                source={{ 
-                  uri: user.user?.profile_photo_url 
-                    ? `${user.user.profile_photo_url}?t=${Date.now()}`
-                    : 'https://via.placeholder.com/100'
-                }} 
-                style={styles.avatar}
-              />
-              <View style={styles.profileInfo}>
-                <Text style={styles.driverName}>{user.user?.full_name || 'Chưa cập nhật'}</Text>
-                <Text style={styles.driverEmail}>{user.user?.email || 'Chưa cập nhật'}</Text>
-                <Text style={styles.studentId}>MSSV: {user.user?.student_id || 'Chưa cập nhật'}</Text>
-                <View style={styles.verificationStatus}>
-                  <Icon 
-                    name={isVerified ? 'verified' : 'pending'} 
-                    size={16} 
-                    color={isVerified ? '#4CAF50' : '#FF9800'} 
+                  <Image
+                    source={{
+                      uri: user.user?.profile_photo_url
+                        ? `${user.user.profile_photo_url}?t=${Date.now()}`
+                        : 'https://via.placeholder.com/100'
+                    }}
+                    style={styles.avatar}
                   />
-                  <Text style={[
-                    styles.verificationText,
-                    { color: isVerified ? '#4CAF50' : '#FF9800' }
-                  ]}>
-                    {isVerified ? 'Đã xác minh' : 'Chưa xác minh'}
-                  </Text>
-                </View>
-              </View>
-                <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-                  <Icon name="edit" size={20} color="#4CAF50" />
-                </TouchableOpacity>
-              </View>
-            </CleanCard>
-          </Animatable.View>
-
-          {/* Stats Card */}
-          <Animatable.View animation="fadeInUp" duration={400} delay={80}>
-            <CleanCard style={styles.statsCard} contentStyle={styles.statsCardContent}>
-              <Text style={styles.cardTitle}>Thống kê tài xế</Text>
-              <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                  <View style={[styles.statIconContainer, { backgroundColor: '#FFF4E6' }]}>
-                    <Icon name="star" size={20} color="#FF9800" />
-                  </View>
-                  <Text style={styles.statValue}>
-                    {driverProfile.rating_avg ? driverProfile.rating_avg.toFixed(1) : '0.0'}
-                  </Text>
-                  <Text style={styles.statLabel}>Đánh giá</Text>
-                </View>
-
-                <View style={styles.statItem}>
-                  <View style={[styles.statIconContainer, { backgroundColor: '#E3F2FD' }]}>
-                    <Icon name="directions-car" size={20} color="#2196F3" />
-                  </View>
-                  <Text style={styles.statValue}>
-                    {driverProfile.total_shared_rides || 0}
-                  </Text>
-                  <Text style={styles.statLabel}>Chuyến đi</Text>
-                </View>
-
-                <View style={styles.statItem}>
-                  <View style={[styles.statIconContainer, { backgroundColor: '#E8F5E9' }]}>
-                    <Icon name="account-balance-wallet" size={20} color={colors.primary} />
-                  </View>
-                  <Text style={styles.statValue}>
-                    {user.wallet?.cached_balance 
-                      ? `${(user.wallet.cached_balance / 1000).toFixed(0)}k`
-                      : '0'}
-                  </Text>
-                  <Text style={styles.statLabel}>Số dư ví</Text>
-                </View>
-
-                <View style={styles.statItem}>
-                  <View style={[styles.statIconContainer, { backgroundColor: '#F3E5F5' }]}>
-                    <Icon name="trending-up" size={20} color="#9C27B0" />
-                  </View>
-                  <Text style={styles.statValue}>
-                    {driverProfile.total_earned 
-                      ? `${(driverProfile.total_earned / 1000000).toFixed(1)}M`
-                      : '0'}
-                  </Text>
-                  <Text style={styles.statLabel}>Tổng thu nhập</Text>
-                </View>
-              </View>
-            </CleanCard>
-          </Animatable.View>
-
-          {/* Vehicle Info Card */}
-          <CleanCard style={styles.vehicleCard} contentStyle={styles.vehicleCardContent}>
-                <TouchableOpacity 
-                  style={styles.vehicleHeader}
-                  onPress={() => setShowVehicleInfo(!showVehicleInfo)}
-                >
-                  <Text style={styles.cardTitle}>Thông tin xe</Text>
-              <Icon 
-                name={showVehicleInfo ? 'expand-less' : 'expand-more'} 
-                size={24} 
-                color="#666" 
-              />
-            </TouchableOpacity>
-            
-            {showVehicleInfo && (
-              <Animatable.View animation="fadeInDown" style={styles.vehicleDetails}>
-                {vehicleInfo ? (
-                  <>
-                    <View style={styles.vehicleRow}>
-                      <Icon name="category" size={20} color="#666" />
-                      <Text style={styles.vehicleLabel}>Dòng xe:</Text>
-                      <Text style={styles.vehicleValue}>{vehicleInfo.model || 'Chưa cập nhật'}</Text>
-                    </View>
-                    
-                    <View style={styles.vehicleRow}>
-                      <Icon name="confirmation-number" size={20} color="#666" />
-                      <Text style={styles.vehicleLabel}>Biển số:</Text>
-                      <Text style={styles.vehicleValue}>
-                        {vehicleInfo.plate_number || vehicleInfo.plateNumber || 'Chưa cập nhật'}
+                  <View style={styles.profileInfo}>
+                    <Text style={styles.driverName}>{user.user?.full_name || 'Chưa cập nhật'}</Text>
+                    <Text style={styles.driverEmail}>{user.user?.email || 'Chưa cập nhật'}</Text>
+                    <Text style={styles.studentId}>MSSV: {user.user?.student_id || 'Chưa cập nhật'}</Text>
+                    <View style={styles.verificationStatus}>
+                      <Icon
+                        name={isVerified ? 'verified' : 'pending'}
+                        size={16}
+                        color={isVerified ? '#4CAF50' : '#FF9800'}
+                      />
+                      <Text style={[
+                        styles.verificationText,
+                        { color: isVerified ? '#4CAF50' : '#FF9800' }
+                      ]}>
+                        {isVerified ? 'Đã xác minh' : 'Chưa xác minh'}
                       </Text>
                     </View>
-                    
-                    <View style={styles.vehicleRow}>
-                      <Icon name="palette" size={20} color="#666" />
-                      <Text style={styles.vehicleLabel}>Màu sắc:</Text>
-                      <Text style={styles.vehicleValue}>{vehicleInfo.color || 'Chưa cập nhật'}</Text>
-                    </View>
-                    
-                    {vehicleInfo.year && (
-                      <View style={styles.vehicleRow}>
-                        <Icon name="calendar-today" size={20} color="#666" />
-                        <Text style={styles.vehicleLabel}>Năm SX:</Text>
-                        <Text style={styles.vehicleValue}>{vehicleInfo.year}</Text>
-                      </View>
-                    )}
-                    
-                    {vehicleInfo.capacity && (
-                      <View style={styles.vehicleRow}>
-                        <Icon name="people" size={20} color="#666" />
-                        <Text style={styles.vehicleLabel}>Số chỗ:</Text>
-                        <Text style={styles.vehicleValue}>{vehicleInfo.capacity}</Text>
-                      </View>
-                    )}
-                    
-                    <ModernButton
-                      title="Cập nhật thông tin xe"
-                      variant="outline"
-                      size="small"
-                      icon="edit"
-                      onPress={handleVehicleEdit}
-                      style={styles.vehicleEditButton}
-                    />
-                  </>
-                ) : (
-                  <View style={styles.noVehicleContainer}>
-                    <Icon name="directions-car" size={48} color="#ccc" />
-                    <Text style={styles.noVehicleText}>Chưa có thông tin xe</Text>
-                    <ModernButton
-                      title="Thêm xe mới"
-                      variant="outline"
-                      size="small"
-                      icon="add"
-                      onPress={() => navigation.navigate('AddVehicle')}
-                      style={styles.vehicleEditButton}
-                    />
                   </View>
-                )}
-              </Animatable.View>
-            )}
-          </CleanCard>
-
-          {/* Menu Sections */}
-          {menuSections.map((section, sectionIndex) => (
-            <View key={sectionIndex} style={styles.menuSection}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <CleanCard style={styles.menuContainer} contentStyle={styles.menuContainerContent}>
-                {section.items.map((item, itemIndex) => (
-                  <TouchableOpacity 
-                    key={itemIndex} 
-                    style={[
-                      styles.menuItem,
-                      itemIndex !== section.items.length - 1 && styles.menuDivider
-                    ]}
-                    onPress={item.onPress}
-                  >
-                    <View style={styles.menuItemLeft}>
-                      <Icon name={item.icon} size={24} color="#666" />
-                      <Text style={styles.menuItemText}>{item.title}</Text>
-                    </View>
-                    <Icon name="chevron-right" size={24} color="#ccc" />
+                  <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
+                    <Icon name="edit" size={20} color="#4CAF50" />
                   </TouchableOpacity>
-                ))}
+                </View>
               </CleanCard>
-            </View>
-          ))}
+            </Animatable.View>
 
-          {/* Logout Button */}
-          <Animatable.View animation="fadeInUp" duration={480} delay={200}>
-            <CleanCard style={styles.logoutCard} contentStyle={styles.logoutCardContent}>
-              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Icon name="logout" size={22} color="#EF4444" />
-                <Text style={styles.logoutText}>Đăng xuất</Text>
+            {/* Stats Card */}
+            <Animatable.View animation="fadeInUp" duration={400} delay={80}>
+              <CleanCard style={styles.statsCard} contentStyle={styles.statsCardContent}>
+                <Text style={styles.cardTitle}>Thống kê tài xế</Text>
+                <View style={styles.statsContainer}>
+                  <View style={styles.statItem}>
+                    <View style={[styles.statIconContainer, { backgroundColor: '#FFF4E6' }]}>
+                      <Icon name="star" size={20} color="#FF9800" />
+                    </View>
+                    <Text style={styles.statValue}>
+                      {driverProfile.rating_avg ? driverProfile.rating_avg.toFixed(1) : '0.0'}
+                    </Text>
+                    <Text style={styles.statLabel}>Đánh giá</Text>
+                  </View>
+
+                  <View style={styles.statItem}>
+                    <View style={[styles.statIconContainer, { backgroundColor: '#E3F2FD' }]}>
+                      <Icon name="directions-car" size={20} color="#2196F3" />
+                    </View>
+                    <Text style={styles.statValue}>
+                      {driverProfile.total_shared_rides || 0}
+                    </Text>
+                    <Text style={styles.statLabel}>Chuyến đi</Text>
+                  </View>
+
+                  <View style={styles.statItem}>
+                    <View style={[styles.statIconContainer, { backgroundColor: '#E8F5E9' }]}>
+                      <Icon name="account-balance-wallet" size={20} color={colors.primary} />
+                    </View>
+                    <Text style={styles.statValue}>
+                      {user.wallet?.cached_balance
+                        ? `${(user.wallet.cached_balance / 1000).toFixed(0)}k`
+                        : '0'}
+                    </Text>
+                    <Text style={styles.statLabel}>Số dư ví</Text>
+                  </View>
+
+                  <View style={styles.statItem}>
+                    <View style={[styles.statIconContainer, { backgroundColor: '#F3E5F5' }]}>
+                      <Icon name="trending-up" size={20} color="#9C27B0" />
+                    </View>
+                    <Text style={styles.statValue}>
+                      {driverProfile.total_earned
+                        ? `${(driverProfile.total_earned / 1000000).toFixed(1)}M`
+                        : '0'}
+                    </Text>
+                    <Text style={styles.statLabel}>Tổng thu nhập</Text>
+                  </View>
+                </View>
+              </CleanCard>
+            </Animatable.View>
+
+            {/* Vehicle Info Card */}
+            <CleanCard style={styles.vehicleCard} contentStyle={styles.vehicleCardContent}>
+              <TouchableOpacity
+                style={styles.vehicleHeader}
+                onPress={() => setShowVehicleInfo(!showVehicleInfo)}
+              >
+                <Text style={styles.cardTitle}>Thông tin xe</Text>
+                <Icon
+                  name={showVehicleInfo ? 'expand-less' : 'expand-more'}
+                  size={24}
+                  color="#666"
+                />
               </TouchableOpacity>
-            </CleanCard>
-          </Animatable.View>
 
-          {/* App Version */}
-          <Text style={styles.versionText}>MSSUS Driver v1.0.0</Text>
-        </View>
+              {showVehicleInfo && (
+                <Animatable.View animation="fadeInDown" style={styles.vehicleDetails}>
+                  {vehicleInfo ? (
+                    <>
+                      <View style={styles.vehicleRow}>
+                        <Icon name="category" size={20} color="#666" />
+                        <Text style={styles.vehicleLabel}>Dòng xe:</Text>
+                        <Text style={styles.vehicleValue}>{vehicleInfo.model || 'Chưa cập nhật'}</Text>
+                      </View>
+
+                      <View style={styles.vehicleRow}>
+                        <Icon name="confirmation-number" size={20} color="#666" />
+                        <Text style={styles.vehicleLabel}>Biển số:</Text>
+                        <Text style={styles.vehicleValue}>
+                          {vehicleInfo.plate_number || vehicleInfo.plateNumber || 'Chưa cập nhật'}
+                        </Text>
+                      </View>
+
+                      <View style={styles.vehicleRow}>
+                        <Icon name="palette" size={20} color="#666" />
+                        <Text style={styles.vehicleLabel}>Màu sắc:</Text>
+                        <Text style={styles.vehicleValue}>{vehicleInfo.color || 'Chưa cập nhật'}</Text>
+                      </View>
+
+                      {vehicleInfo.year && (
+                        <View style={styles.vehicleRow}>
+                          <Icon name="calendar-today" size={20} color="#666" />
+                          <Text style={styles.vehicleLabel}>Năm SX:</Text>
+                          <Text style={styles.vehicleValue}>{vehicleInfo.year}</Text>
+                        </View>
+                      )}
+
+                      {vehicleInfo.capacity && (
+                        <View style={styles.vehicleRow}>
+                          <Icon name="people" size={20} color="#666" />
+                          <Text style={styles.vehicleLabel}>Số chỗ:</Text>
+                          <Text style={styles.vehicleValue}>{vehicleInfo.capacity}</Text>
+                        </View>
+                      )}
+
+                      <ModernButton
+                        title="Cập nhật thông tin xe"
+                        variant="outline"
+                        size="small"
+                        icon="edit"
+                        onPress={handleVehicleEdit}
+                        style={styles.vehicleEditButton}
+                      />
+                    </>
+                  ) : (
+                    <View style={styles.noVehicleContainer}>
+                      <Icon name="directions-car" size={48} color="#ccc" />
+                      <Text style={styles.noVehicleText}>Chưa có thông tin xe</Text>
+                      <ModernButton
+                        title="Thêm xe mới"
+                        variant="outline"
+                        size="small"
+                        icon="add"
+                        onPress={() => navigation.navigate('AddVehicle')}
+                        style={styles.vehicleEditButton}
+                      />
+                    </View>
+                  )}
+                </Animatable.View>
+              )}
+            </CleanCard>
+
+            {/* Menu Sections */}
+            {menuSections.map((section, sectionIndex) => (
+              <View key={sectionIndex} style={styles.menuSection}>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <CleanCard style={styles.menuContainer} contentStyle={styles.menuContainerContent}>
+                  {section.items.map((item, itemIndex) => (
+                    <TouchableOpacity
+                      key={itemIndex}
+                      style={[
+                        styles.menuItem,
+                        itemIndex !== section.items.length - 1 && styles.menuDivider
+                      ]}
+                      onPress={item.onPress}
+                    >
+                      <View style={styles.menuItemLeft}>
+                        <Icon name={item.icon} size={24} color="#666" />
+                        <Text style={styles.menuItemText}>{item.title}</Text>
+                      </View>
+                      <Icon name="chevron-right" size={24} color="#ccc" />
+                    </TouchableOpacity>
+                  ))}
+                </CleanCard>
+              </View>
+            ))}
+
+            {/* Logout Button */}
+            <Animatable.View animation="fadeInUp" duration={480} delay={200}>
+              <CleanCard style={styles.logoutCard} contentStyle={styles.logoutCardContent}>
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                  <Icon name="logout" size={22} color="#EF4444" />
+                  <Text style={styles.logoutText}>Đăng xuất</Text>
+                </TouchableOpacity>
+              </CleanCard>
+            </Animatable.View>
+
+            {/* App Version */}
+            <Text style={styles.versionText}>MSSUS Driver v1.0.0</Text>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </AppBackground>

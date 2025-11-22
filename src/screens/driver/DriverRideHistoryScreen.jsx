@@ -248,7 +248,6 @@ const DriverRideHistoryScreen = ({ navigation }) => {
                 <Icon name="chevron-right" size={20} color={colors.textMuted} />
               </View>
             </View>
-
             <View style={styles.rideRoute}>
               <View style={styles.routeItem}>
                 <View style={styles.routeDot} />
