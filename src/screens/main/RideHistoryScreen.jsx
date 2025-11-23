@@ -578,13 +578,17 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: 'row',
     gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   tab: {
-    flex: 1,
+    flexGrow: 1,
+    minWidth: '30%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 8,
     borderRadius: 12,
     gap: 6,
     backgroundColor: 'rgba(148,163,184,0.08)',
@@ -596,6 +600,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter_500Medium',
     color: colors.textMuted,
+    flexShrink: 1,
+    textAlign: 'center',
   },
   activeTabText: {
     color: colors.primary,

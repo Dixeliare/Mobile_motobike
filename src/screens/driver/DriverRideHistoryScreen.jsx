@@ -214,10 +214,10 @@ const DriverRideHistoryScreen = ({ navigation }) => {
             <View style={styles.rideTop}>
               <View style={styles.rideLeft}>
                 <View style={[styles.rideIcon, { backgroundColor: isOngoing ? '#FEF3C7' : '#D1FAE5' }]}>
-                  <Icon 
-                    name="two-wheeler" 
-                    size={18} 
-                    color={isOngoing ? '#F59E0B' : '#10B981'} 
+                  <Icon
+                    name="two-wheeler"
+                    size={18}
+                    color={isOngoing ? '#F59E0B' : '#10B981'}
                   />
                 </View>
                 <View style={styles.rideInfo}>
@@ -248,7 +248,7 @@ const DriverRideHistoryScreen = ({ navigation }) => {
                 <Icon name="chevron-right" size={20} color={colors.textMuted} />
               </View>
             </View>
-            
+
             <View style={styles.rideRoute}>
               <View style={styles.routeItem}>
                 <View style={styles.routeDot} />
@@ -307,7 +307,7 @@ const DriverRideHistoryScreen = ({ navigation }) => {
               {selectedTab === 'ongoing' ? 'Chưa có chuyến đi đang diễn ra' : 'Chưa có lịch sử chuyến đi'}
             </Text>
             <Text style={styles.emptySubtitle}>
-              {selectedTab === 'ongoing' 
+              {selectedTab === 'ongoing'
                 ? 'Bạn sẽ thấy các chuyến đi đang diễn ra ở đây'
                 : 'Lịch sử chuyến đi của bạn sẽ hiển thị ở đây'}
             </Text>
