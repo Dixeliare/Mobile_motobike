@@ -128,17 +128,16 @@ const DriverProfileScreen = ({ navigation }) => {
     {
       title: 'Chuyến đi',
       items: [
-        { icon: 'history', title: 'Lịch sử chuyến đi', onPress: () => navigation.navigate('DriverRideHistory') },
         { icon: 'star', title: 'Đánh giá của tôi', onPress: () => navigation.navigate('DriverRatings') }
       ]
     },
     {
       title: 'Tài khoản',
       items: [
-        { icon: 'swap-horiz', title: 'Chuyển đổi chế độ', onPress: () => navigation.navigate('ProfileSwitch') },
+        { icon: 'swap-horiz', title: 'Chuyển đổi chế độ', onPress: () => navigation.navigate('SwitchMode') },
         { icon: 'edit', title: 'Chỉnh sửa thông tin', onPress: handleEditProfile },
         { icon: 'security', title: 'Đổi mật khẩu', onPress: () => navigation.navigate('ChangePassword') },
-        { icon: 'verified', title: 'Xác minh tài khoản', onPress: () => navigation.navigate('ProfileSwitch') },
+        { icon: 'verified', title: 'Xác minh tài khoản', onPress: () => navigation.navigate('AccountVerification') },
         { icon: 'account-balance', title: 'Thông tin ngân hàng', onPress: () => Alert.alert('Thông báo', 'Chức năng đang phát triển') }
       ]
     },
