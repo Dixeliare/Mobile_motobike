@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { createBottomTabNavigator, useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { Platform, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Platform, View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { colors } from '../theme/designTokens';
 
 import DriverHomeScreen from '../screens/driver/DriverHomeScreen.jsx';
 import DriverEarningsScreen from '../screens/driver/DriverEarningsScreen.jsx';
@@ -13,7 +14,80 @@ import DriverProfileScreen from '../screens/driver/DriverProfileScreen.jsx';
 
 const Tab = createBottomTabNavigator();
 
-// Custom Tab Bar Component giống như rider
+// Tab Icon Component với outline icons và animation
+const DriverTabIcon = ({ iconName, isFocused, onPress }) => {
+  const scaleAnim = React.useRef(new Animated.Value(isFocused ? 1.1 : 1)).current;
+
+  React.useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: isFocused ? 1.2 : 1,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  }, [isFocused, scaleAnim]);
+
+  // Icon mapping: some icons don't have outline versions
+  const iconMap = {
+    'two-wheeler': {
+      active: 'two-wheeler',
+      inactive: 'two-wheeler', // No outline version, will use opacity
+    },
+    'account-balance-wallet': {
+      active: 'account-balance-wallet',
+      inactive: 'account-balance-wallet', // Use same icon with opacity
+    },
+    'history': {
+      active: 'history',
+      inactive: 'history', // No outline version, will use opacity
+    },
+    'person': {
+      active: 'person',
+      inactive: 'person-outline',
+    },
+  };
+
+  const iconConfig = iconMap[iconName] || {
+    active: iconName,
+    inactive: iconName.includes('-outline') ? iconName : `${iconName}-outline`,
+  };
+
+  const finalIconName = isFocused ? iconConfig.active : iconConfig.inactive;
+  const iconOpacity = isFocused ? 1 : 0.6; // Lower opacity for inactive icons without outline
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 0,
+      }}
+      activeOpacity={0.7}
+    >
+      <Animated.View
+        style={{
+          transform: [{ scale: scaleAnim }],
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: iconOpacity,
+          width: 44,
+          height: 44,
+        }}
+      >
+        <Icon
+          name={finalIconName}
+          size={28}
+          color={isFocused ? '#FFFFFF' : '#9CA3AF'}
+        />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
+
+// Custom Tab Bar Component với icon design được cải thiện
 const CustomDriverTabBar = ({ state, descriptors, navigation, insets }) => {
   const bottomSafe = Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 6);
   const baseHeight = Platform.OS === 'ios' ? 64 : 56;
@@ -73,8 +147,8 @@ const CustomDriverTabBar = ({ state, descriptors, navigation, insets }) => {
           flex: 1,
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-around',
-          paddingHorizontal: 12,
+          justifyContent: 'center',
+          paddingHorizontal: 0,
         }}
       >
         {state.routes.map((route, index) => {
@@ -93,43 +167,22 @@ const CustomDriverTabBar = ({ state, descriptors, navigation, insets }) => {
             }
           };
 
-          let iconName = 'home';
+          let iconName = 'two-wheeler'; // Scooter icon for DriverHome
           if (route.name === 'Earnings') {
-            iconName = 'attach-money';
+            iconName = 'account-balance-wallet'; // Wallet icon for Earnings
           } else if (route.name === 'DriverHistory') {
-            iconName = 'history';
+            iconName = 'history'; // History icon
           } else if (route.name === 'DriverProfile') {
-            iconName = 'person';
+            iconName = 'person'; // Profile icon
           }
 
           return (
-            <TouchableOpacity
+            <DriverTabIcon
               key={route.key}
+              iconName={iconName}
+              isFocused={isFocused}
               onPress={onPress}
-              style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: 8,
-              }}
-              activeOpacity={0.7}
-            >
-              <Icon
-                name={iconName}
-                size={24}
-                color={isFocused ? '#FFFFFF' : '#9CA3AF'}
-              />
-              {isFocused && (
-                <View
-                  style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: '#FFFFFF',
-                    marginTop: 4,
-                  }}
-                />
-              )}
-            </TouchableOpacity>
+            />
           );
         })}
       </View>
