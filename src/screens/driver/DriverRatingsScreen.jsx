@@ -40,7 +40,6 @@ const DriverRatingsScreen = ({ navigation }) => {
 
       const response = await ratingService.getDriverRatingsHistory(0, 50);
       const ratingsData = response?.content || response?.data || [];
-
       setRatings(ratingsData);
 
       // Calculate stats
