@@ -107,7 +107,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
         return true;
       }
     }
-
     // Second check: against campus anchors list
     if (campusAnchors.length > 0 && location) {
       const isAnchor = campusAnchors.some(anchor => {
@@ -168,7 +167,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
       longitude: 106.8000331,
       isPOI: false
     };
-
     if (!fptUniversityLocation) {
       setFptUniversityLocation(fallbackFPT);
     }
@@ -191,7 +189,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
 
         const anchors = [];
         let fptLoc = null;
-
         if (fptUniversity) {
           fptLoc = {
             ...fptUniversity,
@@ -200,7 +197,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
           };
           anchors.push(fptLoc);
         }
-
         if (studentCultureHouse) {
           anchors.push({
             ...studentCultureHouse,
@@ -419,13 +415,11 @@ const CreateSharedRideScreen = ({ navigation }) => {
     if (!route) return;
 
     setSelectedRoute(route);
-
     // Populate locations from route
     if (route.fromLocation) {
       setStartLocation(route.fromLocation);
       setStartAddress(route.fromLocationName || route.fromLocation.name || 'Điểm đi');
     }
-
     if (route.toLocation) {
       setEndLocation(route.toLocation);
       setEndAddress(route.toLocationName || route.toLocation.name || 'Điểm đến');
@@ -437,7 +431,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
         const decodedPolyline = goongService.decodePolyline(route.polyline);
         const formattedPolyline = decodedPolyline.map(point => [point.longitude, point.latitude]);
         setRoutePolyline(formattedPolyline);
-
         // Fit map to route
         if (mapRef.current && route.fromLocation && route.toLocation) {
           setTimeout(() => {
@@ -461,7 +454,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
 
   const handleModeSwitch = (mode) => {
     setBookingMode(mode);
-
     // Clear selections when switching modes
     if (mode === 'custom') {
       setSelectedRoute(null);
@@ -558,7 +550,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
         return;
       }
       */
-
       // For predefined mode, use locations from selected route
       if (bookingMode === 'predefined' && selectedRoute) {
         processedStartLocation = selectedRoute.fromLocation;
@@ -567,7 +558,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
 
       // Prepare request body to match expected format
       const rideData = {};
-
       // Only include scheduledDepartureTime if hasScheduledTime is true
       if (hasScheduledTime) {
         rideData.scheduledDepartureTime = scheduledTimeIsoVN || formatDateTimeForBackend(scheduledTime);
@@ -850,7 +840,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
                               {route.name}
                             </Text>
                           </View>
-
                           <View style={styles.routeCardLocations}>
                             <View style={styles.routeLocationItem}>
                               <Icon name="radio-button-checked" size={14} color="#4CAF50" style={{ marginRight: 8 }} />
@@ -865,7 +854,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
                               </Text>
                             </View>
                           </View>
-
                           {route.defaultPrice != null && (
                             <View style={styles.routeCardPrice}>
                               <Text style={styles.routePriceText}>
@@ -874,7 +862,6 @@ const CreateSharedRideScreen = ({ navigation }) => {
                             </View>
                           )}
                         </View>
-
                         {selectedRoute?.routeId === route.routeId && (
                           <View style={styles.routeCardCheck}>
                             <Icon name="check-circle" size={24} color="#4CAF50" />
@@ -1038,65 +1025,69 @@ const CreateSharedRideScreen = ({ navigation }) => {
                   </>
                 )}
               </TouchableOpacity>
-            </ScrollView>
-          </Animatable.View>
+            </ScrollView >
+          </Animatable.View >
 
           {/* Date Time Picker */}
-          {showDatePicker && (
-            <DateTimePicker
-              value={datePart}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              // chỉ Android mới có event.type; iOS event có thể undefined
-              onChange={(event, selectedDate) => {
-                // đóng picker trên mọi nền tảng khi user đã chọn hoặc cancel
-                if (Platform.OS === 'android') setShowDatePicker(false);
-                if (event?.type === 'dismissed') {
-                  if (Platform.OS === 'ios') setShowDatePicker(false);
-                  return;
-                }
-                if (selectedDate) {
-                  const next = new Date(selectedDate);
-                  next.setHours(0, 0, 0, 0); // chỉ giữ Y-M-D
-                  setDatePart(next);
-                  // Cập nhật preview ngay (giữ HH:mm cũ)
-                  applySchedule(next, timePart);
-                  // đóng date picker và mở time picker
-                  setShowDatePicker(false);
-                  // dùng setTimeout 0 để tránh batch state làm kẹt modal trên iOS
-                  setTimeout(() => setShowTimePicker(true), 0);
-                }
-              }}
+          {
+            showDatePicker && (
+              <DateTimePicker
+                value={datePart}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                // chỉ Android mới có event.type; iOS event có thể undefined
+                onChange={(event, selectedDate) => {
+                  // đóng picker trên mọi nền tảng khi user đã chọn hoặc cancel
+                  if (Platform.OS === 'android') setShowDatePicker(false);
+                  if (event?.type === 'dismissed') {
+                    if (Platform.OS === 'ios') setShowDatePicker(false);
+                    return;
+                  }
+                  if (selectedDate) {
+                    const next = new Date(selectedDate);
+                    next.setHours(0, 0, 0, 0); // chỉ giữ Y-M-D
+                    setDatePart(next);
+                    // Cập nhật preview ngay (giữ HH:mm cũ)
+                    applySchedule(next, timePart);
+                    // đóng date picker và mở time picker
+                    setShowDatePicker(false);
+                    // dùng setTimeout 0 để tránh batch state làm kẹt modal trên iOS
+                    setTimeout(() => setShowTimePicker(true), 0);
+                  }
+                }}
 
-              minimumDate={new Date()} // không cho chọn ngày quá khứ
-            />
-          )}
+                minimumDate={new Date()} // không cho chọn ngày quá khứ
+              />
+            )
+          }
 
           {/* Time Picker */}
-          {showTimePicker && (
-            <DateTimePicker
-              value={timePart}
-              mode="time"
-              is24Hour={true}
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={(event, selectedTime) => {
-                if (Platform.OS === 'android') {
-                  setShowTimePicker(false);
-                  if (event?.type === 'dismissed') return;
-                }
-                if (selectedTime) {
-                  // Chỉ lấy HH:mm; giữ nguyên datePart
-                  const next = new Date(timePart);
-                  next.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
-                  setTimePart(next);
-                  applySchedule(datePart, next);
-                }
-              }}
-            />
-          )}
-        </SafeAreaView>
-      </KeyboardAvoidingView>
-    </AppBackground>
+          {
+            showTimePicker && (
+              <DateTimePicker
+                value={timePart}
+                mode="time"
+                is24Hour={true}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(event, selectedTime) => {
+                  if (Platform.OS === 'android') {
+                    setShowTimePicker(false);
+                    if (event?.type === 'dismissed') return;
+                  }
+                  if (selectedTime) {
+                    // Chỉ lấy HH:mm; giữ nguyên datePart
+                    const next = new Date(timePart);
+                    next.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+                    setTimePart(next);
+                    applySchedule(datePart, next);
+                  }
+                }}
+              />
+            )
+          }
+        </SafeAreaView >
+      </KeyboardAvoidingView >
+    </AppBackground >
   );
 };
 
