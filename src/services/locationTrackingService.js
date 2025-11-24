@@ -13,6 +13,7 @@ class LocationTrackingService {
   constructor() {
     this.isTracking = false;
     this.currentRideId = null;
+    this.currentRole = 'DRIVER';
     this.locationBuffer = [];
     this.lastSendTime = 0;
     this.sendInterval = 30000; // 30s
@@ -358,9 +359,9 @@ class LocationTrackingService {
   /**
    * Start GPS tracking for a ride
    */
-  async startTracking(rideId) {
+  async startTracking(rideId, role = 'DRIVER') {
     try {
-      console.log(`Starting GPS tracking for ride ${rideId}`);
+      console.log(`Starting GPS tracking for ride ${rideId} as ${role}`);
 
       // Kiểm tra trạng thái location service trước
       const serviceOk = await this.checkLocationServiceStatus();
@@ -412,6 +413,7 @@ class LocationTrackingService {
       }
 
       this.currentRideId = rideId;
+      this.currentRole = (role || 'DRIVER').toUpperCase();
       this.isTracking = true;
       this.locationBuffer = [];
       this.lastSendTime = Date.now();
@@ -462,6 +464,7 @@ class LocationTrackingService {
         console.log('GPS tracking failed, enabling simulation mode as fallback...');
         this.isTracking = true;
         this.currentRideId = rideId;
+        this.currentRole = (role || 'DRIVER').toUpperCase();
         
         // Bật simulation với pickup -> dropoff nếu có dữ liệu
         try {
@@ -506,6 +509,7 @@ class LocationTrackingService {
 
       this.isTracking = false;
       this.currentRideId = null;
+      this.currentRole = 'DRIVER';
       this.locationBuffer = [];
 
       console.log('GPS tracking stopped');
@@ -560,8 +564,8 @@ class LocationTrackingService {
   async processLocationUpdate(locations) {
     if (!this.isTracking || !this.currentRideId) return;
     
-    // Skip processing during simulation to avoid triggering real tracking
-    if (this.isSimulating) return;
+    // Skip processing during simulation only when local-only
+    if (this.isSimulating && this.simulationLocalOnly) return;
 
     try {
       const validLocations = (locations || [])
@@ -652,7 +656,7 @@ class LocationTrackingService {
         destination: wsDestination,
         body: JSON.stringify(points),
       });
-      console.log(`✅ [LocationTracking] Sent ${points.length} location points via WebSocket (${context}) to ${wsDestination}`);
+      console.log(`✅ [LocationTracking] Sent ${points.length} location points via WebSocket (${context}) to ${wsDestination} as ${this.currentRole}`);
     } catch (error) {
       console.error('❌ [LocationTracking] WebSocket publish error:', error);
       throw error;

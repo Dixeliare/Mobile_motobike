@@ -42,6 +42,7 @@ const RideTrackingScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [showProposals, setShowProposals] = useState(true);
   const [driverLocation, setDriverLocation] = useState(null);
+  const riderTrackingStartedRef = useRef(false);
   const [requestDetails, setRequestDetails] = useState(null);
   const [routePolyline, setRoutePolyline] = useState(null); // Current polyline to display
   const [currentPolylineEncoded, setCurrentPolylineEncoded] = useState(null);
@@ -59,6 +60,7 @@ const RideTrackingScreen = ({ navigation, route }) => {
   const sheetHeight = sheetHeightRef.current; // Start at 120px (collapsed)
   const panResponder = useRef(null);
   const mapFittedRef = useRef(false);
+  const ratingPromptedRef = useRef(false);
 
   const normalizeLocation = useCallback((...candidates) => {
     for (const item of candidates) {
@@ -409,39 +411,41 @@ const RideTrackingScreen = ({ navigation, route }) => {
     (data) => {
       console.log('📍 [RideTracking] Real-time tracking update received:', JSON.stringify(data, null, 2));
 
-      if (data.currentLat && data.currentLng) {
-        const newDriverLocation = {
-          latitude: parseFloat(data.currentLat),
-          longitude: parseFloat(data.currentLng),
-        };
+      const riderLat = data.riderLat ?? data.riderlat;
+      const riderLng = data.riderLng ?? data.riderlng;
+      const driverLat = data.currentLat;
+      const driverLng = data.currentLng;
 
-        if (
-          !Number.isNaN(newDriverLocation.latitude) &&
-          !Number.isNaN(newDriverLocation.longitude) &&
-          Math.abs(newDriverLocation.latitude) <= 90 &&
-          Math.abs(newDriverLocation.longitude) <= 180
-        ) {
-          setDriverLocation(newDriverLocation);
-          console.log('✅ [RideTracking] Updated driver location marker:', newDriverLocation);
-        } else {
-          console.warn('⚠️ [RideTracking] Invalid driver coordinates:', newDriverLocation);
-        }
+      // If rider coords exist, use them; otherwise mirror driver coords so marker moves with the ride (e.g., during simulation)
+      const candidate = riderLat && riderLng
+        ? { latitude: parseFloat(riderLat), longitude: parseFloat(riderLng) }
+        : (driverLat && driverLng
+            ? { latitude: parseFloat(driverLat), longitude: parseFloat(driverLng) }
+            : null);
 
-        if (data.polyline) {
-          updatePolylineFromEncoded(data.polyline, 'ws');
-        }
+      if (
+        candidate &&
+        !Number.isNaN(candidate.latitude) &&
+        !Number.isNaN(candidate.longitude) &&
+        Math.abs(candidate.latitude) <= 90 &&
+        Math.abs(candidate.longitude) <= 180
+      ) {
+        setDriverLocation(candidate);
+        console.log('✅ [RideTracking] Updated rider marker:', candidate);
+      }
 
-        if (data.estimatedArrival) {
-          setEtaText(data.estimatedArrival);
-        } else if (data.currentDistanceKm !== null && data.currentDistanceKm !== undefined) {
-          const distanceKm = parseFloat(data.currentDistanceKm);
-          if (!Number.isNaN(distanceKm)) {
-            const estimatedMinutes = Math.ceil((distanceKm / 30) * 60);
-            setEtaText(`Còn ${estimatedMinutes} phút`);
-          }
+      if (data.polyline) {
+        updatePolylineFromEncoded(data.polyline, 'ws');
+      }
+
+      if (data.estimatedArrival) {
+        setEtaText(data.estimatedArrival);
+      } else if (data.currentDistanceKm !== null && data.currentDistanceKm !== undefined) {
+        const distanceKm = parseFloat(data.currentDistanceKm);
+        if (!Number.isNaN(distanceKm)) {
+          const estimatedMinutes = Math.ceil((distanceKm / 30) * 60);
+          setEtaText(`Còn ${estimatedMinutes} phút`);
         }
-      } else {
-        console.warn('⚠️ [RideTracking] Tracking update missing coordinates:', data);
       }
     },
     [updatePolylineFromEncoded]
@@ -561,7 +565,39 @@ const RideTrackingScreen = ({ navigation, route }) => {
     };
   }, [setupWebSocketListeners, cleanupWebSocketListeners]);
 
+  useEffect(() => {
+    const shouldTrack = effectiveRideId && (rideStatus === 'CONFIRMED' || rideStatus === 'ONGOING');
+
+    if (shouldTrack && !riderTrackingStartedRef.current) {
+      locationTrackingService.startTracking(effectiveRideId, 'RIDER')
+        .then(() => {
+          riderTrackingStartedRef.current = true;
+          console.log('✅ [RideTracking] Rider tracking started');
+        })
+        .catch(err => console.warn('⚠️ [RideTracking] Failed to start rider tracking:', err));
+    }
+
+    if (!shouldTrack && riderTrackingStartedRef.current) {
+      locationTrackingService.stopTracking()
+        .catch(err => console.warn('⚠️ [RideTracking] Failed to stop rider tracking:', err));
+      riderTrackingStartedRef.current = false;
+    }
+
+    return () => {
+      if (riderTrackingStartedRef.current) {
+        locationTrackingService.stopTracking()
+          .catch(err => console.warn('⚠️ [RideTracking] Failed to stop rider tracking on cleanup:', err));
+        riderTrackingStartedRef.current = false;
+      }
+    };
+  }, [effectiveRideId, rideStatus]);
+
   const handleRideCompleted = useCallback(() => {
+    if (ratingPromptedRef.current) {
+      return;
+    }
+    ratingPromptedRef.current = true;
+
     // Clear active ride from storage
     activeRideService.clearActiveRide().catch(err => console.warn('Failed to clear active ride:', err));
     
@@ -1406,7 +1442,7 @@ const RideTrackingScreen = ({ navigation, route }) => {
                   start: { lat: start.latitude, lng: start.longitude },
                   end: { lat: end.latitude, lng: end.longitude },
                   speedMps: 8.33,
-                  localOnly: true,
+                  localOnly: false,
                 });
                 Alert.alert('Giả lập', 'Đang giả lập di chuyển…');
               } catch {}
@@ -1540,42 +1576,26 @@ const RideTrackingScreen = ({ navigation, route }) => {
             title: requestDetails.dropoff_location.name || "Điểm đến",
             pinColor: "#F44336"
           }] : []),
-          // Driver location (if available) - prioritize real-time location
-          ...(driverLocation ? [{
-            id: 'driver',
-            coordinate: {
-              latitude: driverLocation.latitude,
-              longitude: driverLocation.longitude,
-            },
-            title: `Tài xế ${selectedProposal?.driverName || driverInfo?.driverName || requestDetails?.driver_name || 'Tài xế'}`,
-            pinColor: "#2196F3",
-            description: "Đang di chuyển"
-          }] : selectedProposal?.driverLocation ? [{
-            id: 'driver-proposal',
-            coordinate: {
-              latitude: selectedProposal.driverLocation.latitude || selectedProposal.driverLocation.lat,
-              longitude: selectedProposal.driverLocation.longitude || selectedProposal.driverLocation.lng,
-            },
-            title: `Tài xế ${selectedProposal.driverName}`,
-            pinColor: "#2196F3",
-            description: "Đang di chuyển"
-          }] : []),
-          // Current user location
-          ...(currentLocation ? [{
-            coordinate: {
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude
-            },
-            title: "Vị trí của bạn",
-            pinColor: "#FF9800"
-          }] : [])
+          // Rider location (real-time if available, else fallback to device location)
+          ...(() => {
+            const riderCoord = driverLocation || currentLocation;
+            return riderCoord
+              ? [{
+                  id: 'rider',
+                  coordinate: riderCoord,
+                  title: "Vị trí của bạn",
+                  pinColor: "#FF9800",
+                  description: driverLocation ? "Đang chia sẻ vị trí" : "Vị trí thiết bị"
+                }]
+              : [];
+          })()
         ], [
           quote,
           driverInfo,
           requestDetails,
           driverLocation,
-          selectedProposal,
-          currentLocation
+          currentLocation,
+          selectedProposal
         ])}
       />
 

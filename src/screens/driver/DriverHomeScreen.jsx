@@ -529,11 +529,17 @@ const DriverHomeScreen = ({ navigation }) => {
     };
     
     // Backend sends totalFare as BigDecimal (string or number)
-    const fareAmount = extractFare(offer.totalFare) || 
-                       extractFare(offer.fareAmount) || 
-                       extractFare(offer.fare) || 
-                       extractFare(offer.estimatedFare) || 
-                       0;
+    const fareAmount = extractFare(
+      offer.totalFare ||
+      offer.total_fare ||
+      offer.fareAmount ||
+      offer.fare_amount ||
+      offer.fare?.total ||
+      offer.fare?.amount ||
+      offer.estimatedFare ||
+      offer.totalFare?.amount ||
+      offer.total_fare?.amount
+    ) || 0;
     console.log('🎯 [DriverHomeScreen] Raw offer.totalFare:', offer.totalFare, 'Type:', typeof offer.totalFare);
     console.log('🎯 [DriverHomeScreen] Extracted fare:', fareAmount);
     
@@ -551,8 +557,8 @@ const DriverHomeScreen = ({ navigation }) => {
           requestId: offer.requestId,
           rider: offer.riderName || 'Hành khách',
           rating: offer.riderRating || 5.0,
-          pickup: offer.pickupAddress || offer.pickupLocationName || offer.pickup?.address || offer.pickup?.name || 'Điểm đón',
-          dropoff: offer.dropoffAddress || offer.dropoffLocationName || offer.dropoff?.address || offer.dropoff?.name || 'Điểm đến',
+          pickup: offer.pickupAddress || offer.pickupLocationName || offer.pickup_location_name || offer.pickup_location?.name || offer.pickup?.address || offer.pickup?.name || 'Điểm đón',
+          dropoff: offer.dropoffAddress || offer.dropoffLocationName || offer.dropoff_location_name || offer.dropoff_location?.name || offer.dropoff?.address || offer.dropoff?.name || 'Điểm đến',
           distance: offer.distance ? `${(offer.distance / 1000).toFixed(1)} km` : 'N/A',
           fare: fareAmount,
           time: 'Now',
@@ -602,19 +608,38 @@ const DriverHomeScreen = ({ navigation }) => {
       loadSharedRides();
     }
     
+    // Resolve names without letting "N/A" override real names
+    const resolvedPickupName =
+      (typeof offer.pickupLocationName === 'string' && offer.pickupLocationName.toUpperCase() !== 'N/A' && offer.pickupLocationName) ||
+      (typeof offer.pickup_location_name === 'string' && offer.pickup_location_name.toUpperCase() !== 'N/A' && offer.pickup_location_name) ||
+      (offer.pickup_location && offer.pickup_location.name) ||
+      (offer.pickup && offer.pickup.name) ||
+      (offer.pickup && offer.pickup.address) ||
+      null;
+
+    const resolvedDropoffName =
+      (typeof offer.dropoffLocationName === 'string' && offer.dropoffLocationName.toUpperCase() !== 'N/A' && offer.dropoffLocationName) ||
+      (typeof offer.dropoff_location_name === 'string' && offer.dropoff_location_name.toUpperCase() !== 'N/A' && offer.dropoff_location_name) ||
+      (offer.dropoff_location && offer.dropoff_location.name) ||
+      (offer.dropoff && offer.dropoff.name) ||
+      (offer.dropoff && offer.dropoff.address) ||
+      null;
+
     // Show modal for real-time popup (ALWAYS show, not just when !showOfferModal)
     const offerData = {
       id: offer.id || offer.requestId || Date.now(),
-      requestId: offer.requestId,
-      rideId: offer.rideId,
+      requestId: offer.requestId || offer.request_id,
+      rideId: offer.rideId || offer.ride_id,
       riderName: offer.riderName || 'Hành khách',
       riderRating: offer.riderRating || 5.0,
-      pickupLocationName: offer.pickupAddress || offer.pickupLocationName || offer.pickup?.address || offer.pickup?.name || 'Điểm đón',
-      dropoffLocationName: offer.dropoffAddress || offer.dropoffLocationName || offer.dropoff?.address || offer.dropoff?.name || 'Điểm đến',
-      pickupLat: offer.pickupLat || offer.pickup?.lat,
-      pickupLng: offer.pickupLng || offer.pickup?.lng,
-      dropoffLat: offer.dropoffLat || offer.dropoff?.lat,
-      dropoffLng: offer.dropoffLng || offer.dropoff?.lng,
+      pickup_location: offer.pickup_location || offer.pickupLocation,
+      dropoff_location: offer.dropoff_location || offer.dropoffLocation,
+      pickupLocationName: resolvedPickupName || offer.pickupAddress || offer.pickup_address || 'Điểm đón',
+      dropoffLocationName: resolvedDropoffName || offer.dropoffAddress || offer.dropoff_address || 'Điểm đến',
+      pickupLat: offer.pickupLat || offer.pickup_lat || offer.pickup_location?.lat || offer.pickup?.lat,
+      pickupLng: offer.pickupLng || offer.pickup_lng || offer.pickup_location?.lng || offer.pickup?.lng,
+      dropoffLat: offer.dropoffLat || offer.dropoff_lat || offer.dropoff_location?.lat || offer.dropoff?.lat,
+      dropoffLng: offer.dropoffLng || offer.dropoff_lng || offer.dropoff_location?.lng || offer.dropoff?.lng,
       fareAmount: fareAmount,
       proposalRank: offer.proposalRank || (isJoinRequest ? 1 : null),
       broadcast: offer.broadcast || false,
@@ -2291,4 +2316,3 @@ const styles = StyleSheet.create({
 });
 
 export default DriverHomeScreen;
-

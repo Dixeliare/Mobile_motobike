@@ -19,12 +19,18 @@ import locationService from "../services/LocationService";
 const { width, height } = Dimensions.get("window");
 
 const sanitizeLocationText = (value) => {
-  if (!value) return null;
-  const trimmed = String(value).trim();
-  if (!trimmed || trimmed.toUpperCase() === "N/A") {
-    return null;
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  if (!text || text.toUpperCase() === "N/A") return null;
+  return text;
+};
+
+const resolveName = (...candidates) => {
+  for (const val of candidates) {
+    const clean = sanitizeLocationText(val);
+    if (clean) return clean;
   }
-  return trimmed;
+  return null;
 };
 
 const RideOfferModal = ({
@@ -48,12 +54,14 @@ const RideOfferModal = ({
   };
 
   const formatCurrency = (amount) => {
-    if (!amount) return "0đ";
+    if (amount === null || amount === undefined) return "0đ";
+    const numeric = typeof amount === "number" ? amount : parseFloat(amount);
+    if (!numeric || Number.isNaN(numeric)) return "0đ";
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(numeric);
   };
 
   const formatDistance = (lat1, lng1, lat2, lng2) => {
@@ -63,8 +71,13 @@ const RideOfferModal = ({
     return locationService.formatDistance(distance);
   };
 
-  const getLocationDisplay = (primary, secondary) => {
-    return sanitizeLocationText(primary) || sanitizeLocationText(secondary) || "Đang xác định";
+  const getLocationDisplay = (primary, secondary, fallback) => {
+    return (
+      sanitizeLocationText(primary) ||
+      sanitizeLocationText(secondary) ||
+      sanitizeLocationText(fallback) ||
+      "Đang xác định"
+    );
   };
 
   const handleAccept = async () => {
@@ -196,12 +209,46 @@ const RideOfferModal = ({
     offer?.status === "BROADCASTING" ||
     offer?.requestStatus === "BROADCASTING";
 
+  const pickupName = resolveName(
+    offer.pickupLocationName,
+    offer.pickup_location_name,
+    offer.pickup_location?.name,
+    offer.pickup_location?.address,
+    offer.pickupAddress,
+    offer.pickup_address,
+    offer.pickup?.address,
+    offer.pickup?.name,
+    offer.pickup?.locationName
+  );
+
+  const dropoffName = resolveName(
+    offer.dropoffLocationName,
+    offer.dropoff_location_name,
+    offer.dropoff_location?.name,
+    offer.dropoff_location?.address,
+    offer.dropoffAddress,
+    offer.dropoff_address,
+    offer.dropoff?.address,
+    offer.dropoff?.name,
+    offer.dropoff?.locationName
+  );
+
+  const fareDisplay =
+    offer.fareAmount ??
+    offer.totalFare ??
+    offer.total_fare ??
+    offer.fare?.total ??
+    offer.fare?.amount ??
+    offer.totalFare?.amount ??
+    offer.total_fare?.amount ??
+    0;
+
   const routeDistanceDisplay = (() => {
     const text = formatDistance(
-      offer.pickupLat,
-      offer.pickupLng,
-      offer.dropoffLat,
-      offer.dropoffLng
+      offer.pickupLat || offer.pickup_lat,
+      offer.pickupLng || offer.pickup_lng,
+      offer.dropoffLat || offer.dropoff_lat,
+      offer.dropoffLng || offer.dropoff_lng
     );
     return text || "Khoảng cách đang cập nhật";
   })();
@@ -261,9 +308,7 @@ const RideOfferModal = ({
               </View>
               <View style={styles.fareContainer}>
                 <Text style={styles.fareAmount}>
-                  {formatCurrency(
-                    offer.fareAmount ?? offer.totalFare ?? offer.fare?.total ?? 0
-                  )}
+                  {formatCurrency(fareDisplay)}
                 </Text>
               </View>
             </View>
@@ -278,7 +323,11 @@ const RideOfferModal = ({
                 <View style={styles.locationInfo}>
                   <Text style={styles.locationLabel}>Điểm đón</Text>
                   <Text style={styles.locationName}>
-                    {getLocationDisplay(offer.pickupLocationName, offer.pickupAddress)}
+                    {getLocationDisplay(
+                      pickupName,
+                      offer.pickupAddress || offer.pickup_address,
+                      offer.pickup_location?.name
+                    )}
                   </Text>
                   {offer.pickupTime && (
                     <Text style={styles.locationTime}>
@@ -307,7 +356,11 @@ const RideOfferModal = ({
                 <View style={styles.locationInfo}>
                   <Text style={styles.locationLabel}>Điểm đến</Text>
                   <Text style={styles.locationName}>
-                    {getLocationDisplay(offer.dropoffLocationName, offer.dropoffAddress)}
+                    {getLocationDisplay(
+                      dropoffName,
+                      offer.dropoffAddress || offer.dropoff_address,
+                      offer.dropoff_location?.name
+                    )}
                   </Text>
                 </View>
               </View>

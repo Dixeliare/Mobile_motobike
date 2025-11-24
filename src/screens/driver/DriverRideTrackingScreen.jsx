@@ -30,6 +30,7 @@ const DriverRideTrackingScreen = ({ route, navigation }) => {
   
   const [isTracking, setIsTracking] = useState(false);
   const [driverLocation, setDriverLocation] = useState(null);
+  const [riderLocation, setRiderLocation] = useState(null);
   const [rideData, setRideData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -634,6 +635,14 @@ const trackingSubscriptionRef = useRef(null);
             setDriverLocation({ latitude, longitude });
           }
         }
+
+        if (data.riderLat && data.riderLng) {
+          const rLat = parseFloat(data.riderLat);
+          const rLng = parseFloat(data.riderLng);
+          if (!Number.isNaN(rLat) && !Number.isNaN(rLng)) {
+            setRiderLocation({ latitude: rLat, longitude: rLng });
+          }
+        }
       };
       
       trackingSubscriptionRef.current = websocketService.subscribeToRideTracking(rideId, handleTrackingUpdate);
@@ -1185,11 +1194,21 @@ const trackingSubscriptionRef = useRef(null);
     markers.push({
       id: 'driver',
       coordinate: driverLocation,
-      title: 'Vị trí của bạn',
+      title: 'Bạn (tài xế)',
       description: 'Đang di chuyển',
-      pinColor: '#2196F3',
+      pinColor: '#0D47A1',
       icon: 'motorcycle',
       updateKey: markerUpdateKey // Use updateKey for re-rendering
+    });
+  }
+
+  if (riderLocation) {
+    markers.push({
+      id: 'rider',
+      coordinate: riderLocation,
+      title: 'Hành khách',
+      description: 'Vị trí của rider',
+      pinColor: '#FF9800'
     });
   }
   

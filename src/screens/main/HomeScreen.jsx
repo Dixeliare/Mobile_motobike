@@ -1,5 +1,5 @@
 // src/screens/home/HomeScreen.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -350,6 +350,14 @@ const HomeScreen = ({ navigation }) => {
       // Clear active ride from storage
       activeRideService.clearActiveRide().catch(err => console.warn('Failed to clear active ride:', err));
       
+      if (ratingAlertShownRef.current) {
+        return;
+      }
+      if (!requestId) {
+        return;
+      }
+      ratingAlertShownRef.current = true;
+
       Alert.alert(
         notification.title || 'Chuyến đi hoàn thành',
         notification.message || 'Chuyến đi của bạn đã hoàn thành. Cảm ơn bạn đã sử dụng dịch vụ!',
@@ -357,25 +365,19 @@ const HomeScreen = ({ navigation }) => {
           {
             text: 'Đánh giá tài xế',
             onPress: () => {
-              if (requestId) {
-                // Navigate to rating screen if we have requestId
-                navigation.navigate('RideRating', {
-                  ride: {
-                    driverInfo: {
-                      driverName: 'Tài xế',
-                      driverRating: 4.8,
-                      totalFare: 0,
-                    },
-                    pickupLocation: { name: 'Điểm đón' },
-                    dropoffLocation: { name: 'Điểm đến' },
+              navigation.navigate('RideRating', {
+                ride: {
+                  driverInfo: {
+                    driverName: 'Tài xế',
+                    driverRating: 4.8,
                     totalFare: 0,
                   },
-                  requestId: requestId,
-                });
-              } else {
-                // If no requestId, just navigate to home
-                navigation.navigate('Home');
-              }
+                  pickupLocation: { name: 'Điểm đón' },
+                  dropoffLocation: { name: 'Điểm đến' },
+                  totalFare: 0,
+                },
+                requestId: requestId,
+              });
             },
           },
           {
